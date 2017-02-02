@@ -1,0 +1,68 @@
+<script src=lib.js></script>
+
+<body bgcolor=black text=white>
+<center>
+<canvas id='canvas1' width=600 height=600></canvas>
+</center>
+</body>
+
+<script id='vs_script' type='x-shader/x-vertex'>
+
+
+   attribute vec3 aPos; 
+
+   varying   vec3 vPos;
+   void main() {
+      gl_Position = vec4(aPos, 1.0);  // Set position of vertex in image.
+      vPos = aPos;                    // Copy pos to a varying variable to
+   }                                  //   interpolate it across pixels.
+</script>
+
+<script id='fs_script' type='x-shader/x-fragment'>
+
+varying vec3 vPos;                               // Pixel position
+uniform float uTime;                             // Time
+vec2 L = vec2(.7, .7);                           // Light direction
+
+float D(float x, float y) {                      // Make a disk shape
+   float b = 1. - (x * x + y * y) / 10.;
+   b = b < 0. ? 0. : b * b * b * b;
+   return b > .708 ? sqrt(b - .707) : 0.;
+}
+float H(vec2 v) {                                // Make a highlight
+   return max(0., 1. - v.x * v.x - v.y * v.y);
+}
+vec3 soap(vec3 v) {                              // Make a soap film;; turbulance is Professor Ken's magic sauce and I'm borrowing it here.
+
+   return sin(15. * v + vec3(10.,10.,10.) *
+                        turbulence(v + vec3(0., 0., .11 * uTime)));
+}
+void main() {
+   vec3 c = 4.3 * mix(vec3(.15*cos(uTime * 1.5),.1*sin(uTime * 1.),.1*tan(uTime * 1.)),            // Sky color gradient
+                     vec3(.2 ,.4,1.),
+           .5 + .4 * vPos.y);
+   float d = D(vPos.x*tan(uTime * 1.), vPos.y*tan(uTime * 1.));                  // wired shape
+   if (d > 0.) {
+      vec2 v = vec2((D(vPos.x+.01, vPos.y) - d) / .01, // Surface tilt
+                    (D(vPos.x, vPos.y+.01) - d) / .01);
+      float z = sqrt(1. - min(1., .05 * dot(v, v)));   // Depth
+      c += z * ( c * max(0., .06 * dot(L, v)) +        // Rim light
+                 vec3(.07*tan(uTime * 1.3),.06*sin(uTime * 1.),.13*tan(uTime * 11.)) *
+       pow(H(v + L) + .8 * H(v - L), 8.) );  // Highlights
+      c *= 1. + .2 * soap(.25 * vec3(v, z));           // Soap film
+   }
+   gl_FragColor = vec4(sqrt(c), 1.);             // Final pixel color----work by Han Su 2017.2.2
+}
+
+</script>
+   
+<script>
+
+var vs = vs_script.innerHTML, fs = fs_script.innerHTML;
+
+addTextEditor(fs, function() { canvas1.setShaders(vs, this.value); });
+
+gl_start(canvas1, vs, fs);
+
+</script>
+
