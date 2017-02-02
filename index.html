@@ -2,10 +2,10 @@
 
 <body bgcolor=black text=white>
 <center>
-<canvas id='canvas1' width=600 height=600></canvas>
+<canvas id='canvas1' width=1300 height=1300></canvas>
 </center>
 </body>
-
+<div>
 <script id='vs_script' type='x-shader/x-vertex'>
 
 
@@ -55,7 +55,8 @@ void main() {
 }
 
 </script>
-   
+</div>
+   <div>
 <script>
 
 var vs = vs_script.innerHTML, fs = fs_script.innerHTML;
@@ -65,4 +66,5 @@ addTextEditor(fs, function() { canvas1.setShaders(vs, this.value); });
 gl_start(canvas1, vs, fs);
 
 </script>
+</div>
 
