@@ -1,6 +1,5 @@
    var startTime = Date.now() / 1000, time = startTime;
-   function drawCanvases(canvases) {
-      window.canvases = canvases;
+   function draw2DCanvases(canvases) {
       for (var i = 0 ; i < canvases.length ; i++)
          trackCursor(canvases[i]);
       setInterval(function() {
@@ -23,7 +22,12 @@
 	 if (z !== undefined)
 	    this.cursor.z = z;
       }
-      canvas.onmousedown = function(e) { this.setCursor(e.clientX, e.clientY, 1); }
+      
+      // canvas.onmouseover = function(e) { this.setCursor(e.clientX, e.clientY, 1); }
+      // canvas.onmousemove = function(e) { this.setCursor(e.clientX, e.clientY   ); }
+      // canvas.onmouseup   = function(e) { this.setCursor(e.clientX, e.clientY, 0); }
+       canvas.onmouseover = function(e) { this.setCursor(e.clientX, e.clientY, 1); }
       canvas.onmousemove = function(e) { this.setCursor(e.clientX, e.clientY   ); }
       canvas.onmouseup   = function(e) { this.setCursor(e.clientX, e.clientY, 0); }
+     
    }
