@@ -6,6 +6,9 @@
 var M = {};
 M._stack = [];
 
+
+
+
 //////////////////////////////////////////////////////////////////////////////
 // Your task is to implement the following methods of object M:
 //////////////////////////////////////////////////////////////////////////////
@@ -18,7 +21,7 @@ M.identity  = function(m)          {
     for (let i = 0; i<m.length;i++){
         m[i] = a[i];
     }
-    //console.log("mmmmmm",m);
+    console.log("mmmmmm",m);
 
     //return m;
 } // Set m values to identity matrix.
@@ -32,9 +35,9 @@ M.restore   = function(m)          {
 } // Pop from a stack to set the 16 values of m.
 
 M.rotateX   = function(m, radians) {
-    //console.log("11111",m,radians);
+    console.log("11111",m,radians);
     M.matrixMultiply(m, [1,0,0,0, 0,Math.cos(radians),-Math.sin(radians),0, 0,Math.sin(radians),Math.cos(radians),0, 0,0,0,1], m);
-    //console.log("2222",m);
+    console.log("2222",m);
 
       /*
      let a = [0,0,0,0, 0,Math.cos(radians),-Math.sin(radians),0, 0,Math.sin(radians),Math.cos(radians),0, 0,0,0,0];
@@ -54,7 +57,7 @@ M.rotateY   = function(m, radians) {
      }
       */
     M.matrixMultiply(m, [Math.cos(radians),0,-Math.sin(radians),0, 0,1,0,0, Math.sin(radians),0,Math.cos(radians),0, 0,0,0,1], m);
-    //console.log("3333",m);
+    console.log("3333",m);
 
 } // Modify m, rotating about the Y axis.
 
@@ -78,32 +81,26 @@ M.save     = function(m)          {
     M._stack.push(_m);
     //console.log(M._stack)
 } // Push the 16 values of m onto a stack.
-M.scale = function(m, v)      {
+M.scale     = function(m, v)      {
 
-    var x,y,z,a;
-
+    var x,y,z;
        if (v instanceof Array) {
           x = v[0];
           y = v[1];
           z = v[2];
-           M.matrixMultiply(m, [v[0],0,0,0, 0,v[1],0,0, 0,0,v[2],0, 0,0,0,0] , m);
-           a = [v[0],0,0,0, 0,v[1],0,0, 0,0,v[2],0, 0,0,0,0] ;
-
        }
-       else {
-           x = y = z = v;
-           M.matrixMultiply(m, [v,0,0,0, 0,v,0,0, 0,0,v,0, 0,0,0,0] , m);
-           a = [v,0,0,0, 0,v,0,0, 0,0,v,0, 0,0,0,0] ;
+       else
+          x = y = z = v;
 
-       }
+    M.matrixMultiply(m, [v[0],0,0,0, 0,v[1],0,0, 0,0,v[2],0, 0,0,0,0] , m);
 
-
-console.log("first",m)
+     /*
+     let a = [v[0],0,0,0, 0,v[1],0,0, 0,0,v[2],0, 0,0,0,0] ;
 
      for (let i = 0; i<m.length;i++){
          m[i] = a[i];
      }
-
+     */
 
 } // Modify m, scaling by v[0],v[1],v[2].
 //M.transform = function(m, v)       {
