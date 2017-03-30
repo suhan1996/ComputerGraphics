@@ -301,9 +301,9 @@
 
       // DRAW AN OPEN PARAMETRIC-MESH TUBE.
       M.scale(m,0.4)
-      M.rotateY(m, time);
-      M.rotateX(m, Math.PI/2);
-      drawCurves(m, S.parametricMesh(S.torus1, 100, 4));
+      M.rotateY(m, time/2);
+      M.rotateX(m, Math.PI/4);
+      drawCurves(m, S.parametricMesh(S.tube, 100, 10));
 
       //drawCurves(m, S.parametricMesh(S.sphere, 50, 50));
 

@@ -23,11 +23,17 @@ var S = {};
    }
 
    S.tube = function(u, v) {
+      //console.log("uuuuuuvvvvv",u,v)
       var theta = 2 * Math.PI * u;
-      return [ Math.cos(theta),
-               Math.sin(theta),
-	       2 * v - 1 ];
+      var phi = v;
+
+      return [
+         (1-v)*Math.cos(theta),v*Math.sin(theta),
+         (2*v - 1)];
    }
+//return [ Math.cos(theta),
+//   Math.sin(theta),
+//   (2*v -1)/10 ];
 
 S.sphere = function(u, v) {
    "use strict";
@@ -58,6 +64,7 @@ S.torus = function(u, v){
       Math.sin(theta) * (1 + ( r * Math.cos(phi))),
       r * Math.sin(phi)
    ];
+
 
 }
 
