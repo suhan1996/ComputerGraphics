@@ -3,77 +3,26 @@
 
 <tr>
 <td><canvas id=canvas1 width=600 height=400></td>
-   <td><canvas id=canvas2 width=600 height=400></td>
-   <td><canvas id=canvas3 width=600 height=400></td>
-
-
-   <td width=50></td>
+<td width=50></td>
 <td valign=top>
+Parametric meshes of shapes.
 </td>
 </tr>
 
 </table>
 
-<script src=drawlib1.js></script>
+<script src=drawlib2.js></script>
 <script src=M.js></script>
 <script src=S.js></script>
 <script>
 
-   // MATRIX IS AN ARRAY OF 16 NUMBERS.
-
    var m = [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
 
+   var Hermite = [2,-3,0,1, -2,3,0,0, 1,-2,1,0, 1,-1,0,0];
+
+   function cubic(A, t) { return A[0] * t*t*t + A[1] * t*t + A[2] * t + A[3]; }
+
    canvas1.update = function(g) {
-      var p, C, c, canvas = this;
-
-      // DRAW A SET OF CURVES IN 3D WITH PERSPECTIVE PROJECTION.
-
-      function drawCurves(m, C) {
-         var i, n, p, cv, x, y, z, fl = 5,
-	     w = canvas.width;
-	     h = canvas.height;
-
-         // LOOP THROUGH CURVES.
-
-         for (n = 0 ; n < C.length ; n++) {
-
-            // BUILD THE PROJECTED CURVE, POINT BY POINT.
-
-	    cv = [];
-	    for (i = 0 ; i < C[n].length ; i++) {
-
-	       // TRANSFORM POINT
-
-	       p = M.transform(m, C[n][i]);
-
-	       // RETRIEVE COORDINATES FROM TRANSFORMED POINT
-
-	       x = p[0];
-	       y = p[1];
-	       z = p[2];
-
-	       // DO PERSPECTIVE TRANSFORM
-
-	       x *= fl / (fl - z);
-	       y *= fl / (fl - z);
-
-	       // DO VIEWPORT TRANSFORM
-
-	       x =  w * x * .5 + .5 * w;
-	       y = -w * y * .5 + .5 * h;
-	       cv.push([x, y]);
-            }
-
-	    // DRAW THE PROJECTED CURVE ONTO THE CANVAS.
-
-	    g.beginPath();
-            g.moveTo(cv[0][0], cv[0][1]);
-	    for (i = 1 ; i < cv.length ; i++)
-               g.lineTo(cv[i][0], cv[i][1]);
-	    g.stroke();
-         }
-      }
-
       g.lineCap = 'round';
       g.lineJoin = 'round';
       g.lineWidth = 1;
@@ -86,243 +35,89 @@
       g.lineTo(this.width,this.height);
       g.lineTo(0,this.height);
       g.lineTo(0,0);
+
       g.stroke();
-
-      M.identity(m);
-      //console.log(m); works
-      M.scale(m, .5);  // Scale the scene down.
-      console.log(m);
-
-      // DRAW SHAPES.
-
-      M.save(m);
-         M.rotateY(m, time);
-         M.rotateX(m, time/2);
-      drawCurves(m, S.parametricMesh(S.torus, 100, 4));
-
-      M.rotateX(m, Math.PI/2);
-
-      // DRAW AN OPEN PARAMETRIC-MESH TUBE.
-
-         drawCurves(m, S.parametricMesh(S.torus, 100, 4));
-
-
-      // DRAW OCTAHEDRON WITH THICK LINES
-
-         g.lineWidth = 5;
-         drawCurves(m, [
-            [[-1,0,0],[0,-1,0],[0,0,-1],[-1,0,0]],
-            [[ 1,0,0],[0,-1,0],[0,0,-1],[ 1,0,0]],
-            [[-1,0,0],[0, 1,0],[0,0,-1],[-1,0,0]],
-            [[ 1,0,0],[0, 1,0],[0,0,-1],[ 1,0,0]],
-            [[-1,0,0],[0,-1,0],[0,0, 1],[-1,0,0]],
-            [[ 1,0,0],[0,-1,0],[0,0, 1],[ 1,0,0]],
-            [[-1,0,0],[0, 1,0],[0,0, 1],[-1,0,0]],
-            [[ 1,0,0],[0, 1,0],[0,0, 1],[ 1,0,0]], ]);
-      M.restore(m);
-   }
-   canvas2.update = function(g) {
-      var p, C, c, canvas = this;
-
-      // DRAW A SET OF CURVES IN 3D WITH PERSPECTIVE PROJECTION.
-
-      function drawCurves(m, C) {
-         var i, n, p, cv, x, y, z, fl = 5,
-                 w = canvas.width;
-         h = canvas.height;
-
-         // LOOP THROUGH CURVES.
-
-         for (n = 0 ; n < C.length ; n++) {
-
-            // BUILD THE PROJECTED CURVE, POINT BY POINT.
-
-            cv = [];
-            for (i = 0 ; i < C[n].length ; i++) {
-
-               // TRANSFORM POINT
-
-               p = M.transform(m, C[n][i]);
-
-               // RETRIEVE COORDINATES FROM TRANSFORMED POINT
-
-               x = p[0];
-               y = p[1];
-               z = p[2];
-
-               // DO PERSPECTIVE TRANSFORM
-
-               x *= fl / (fl - z);
-               y *= fl / (fl - z);
-
-               // DO VIEWPORT TRANSFORM
-
-               x =  w * x * .5 + .5 * w;
-               y = -w * y * .5 + .5 * h;
-               cv.push([x, y]);
-            }
-
-            // DRAW THE PROJECTED CURVE ONTO THE CANVAS.
-
-            g.beginPath();
-            g.moveTo(cv[0][0], cv[0][1]);
-            for (i = 1 ; i < cv.length ; i++)
-               g.lineTo(cv[i][0], cv[i][1]);
-            g.stroke();
-            //g.lineWidth(5);
-         }
-      }
-
-      g.lineCap = 'round';
-      g.lineJoin = 'round';
-      g.lineWidth = 1;
-
-      // OUTLINE THE CANVAS
 
       g.beginPath();
-      g.moveTo(0,0);
-      g.lineTo(this.width,0);
-      g.lineTo(this.width,this.height);
-      g.lineTo(0,this.height);
-      g.lineTo(0,0);
+      g.arc(195, 325, 5*Math.abs(Math.sin(time)), 0, 2 * Math.PI);
+      g.stroke();
+      g.beginPath();
+      g.arc(175, 305, 5*Math.abs(Math.sin(time)), 0, 2 * Math.PI);
       g.stroke();
 
-      M.identity(m);
-      //console.log(m); works
-      M.scale(m, .5);  // Scale the scene down.
-      console.log(m);
 
-      // DRAW SHAPES.
+      M.identity(m);
 
       M.save(m);
-      M.rotateY(m, time);
-      M.rotateX(m, time/2);
+         //          x   y   z
 
-      // DRAW AN OPEN PARAMETRIC-MESH TUBE.
-      drawCurves(m, S.parametricMesh(S.torus, 100, 4));
-      M.scale(m,0.4)
-      M.rotateY(m, time);
-      M.rotateX(m, Math.PI/2);
+         var P0 = [-.5,-.5,  0];
+         var P1 = [ .5, .5,  0];
+         var R0 = [  3,  0,  3*Math.sin(time)];
+         var R1 = [  3,  4,  3];
 
-      drawCurves(m, S.parametricMesh(S.sphere, 50, 50));
+	 var X = M.transform(Hermite, [ P0[0], P1[0], R0[0], R1[0] ]),
+	     Y = M.transform(Hermite, [ P0[1], P1[1], R0[1], R1[1] ]),
+	     Z = M.transform(Hermite, [ P0[2], P1[2], R0[2], R1[2] ]);
+         var C = [];
+	 for (var t = 0 ; t < 1.001 ; t += 1/20)
+	    C.push([ cubic(X,t), cubic(Y,t), cubic(Z,t) ]);
+
+         this.drawCurves(m, [ C ]);
 
 
-      // DRAW OCTAHEDRON WITH THICK LINES
+      var D = [];
+      for (var t = 0 ; t < 1.001 ; t += 1/20)
+         D.push([ cubic(Y,t), cubic(X,t), cubic(Z,t) ]);
 
-      g.lineWidth = 5;
-//      drawCurves(m, [
-//         [[-1,0,0],[0,-1,0],[0,0,-1],[-1,0,0]],
-//         [[ 1,0,0],[0,-1,0],[0,0,-1],[ 1,0,0]],
-//         [[-1,0,0],[0, 1,0],[0,0,-1],[-1,0,0]],
-//         [[ 1,0,0],[0, 1,0],[0,0,-1],[ 1,0,0]],
-//         [[-1,0,0],[0,-1,0],[0,0, 1],[-1,0,0]],
-//         [[ 1,0,0],[0,-1,0],[0,0, 1],[ 1,0,0]],
-//         [[-1,0,0],[0, 1,0],[0,0, 1],[-1,0,0]],
-//         [[ 1,0,0],[0, 1,0],[0,0, 1],[ 1,0,0]], ]);
-      M.restore(m);
-   }
-   // WE ARE DRAWING the second CANVAS.
-   canvas3.update = function(g) {
-      var p, C, c, canvas = this;
+      this.drawCurves(m, [ D ]);
 
-      // DRAW A SET OF CURVES IN 3D WITH PERSPECTIVE PROJECTION.
 
-      function drawCurves(m, C) {
-         var i, n, p, cv, x, y, z, fl = 5,
-                 w = canvas.width;
-         h = canvas.height;
+      var P = [
+         [ -2, 0,  0],
+         [  -1,  0, .5],
+         [  .5,  .5, .5],
+         [  1, 1,  1],
+      ];
+      var R = [
+         [   1,   0,  Math.sin(time)],
+         [   0,   1,  Math.cos(time)],
 
-         // LOOP THROUGH CURVES.
+         [   0,   1,  Math.sin(time)],
+         [   1,   0,  Math.cos(time)],
+      ];
 
-         for (n = 0 ; n < C.length ; n++) {
+      M.identity(m);
+      M.save(m);
 
-            // BUILD THE PROJECTED CURVE, POINT BY POINT.
+      M.rotateY(m, Math.PI/4);
 
-            cv = [];
-            for (i = 0 ; i < C[n].length ; i++) {
+      var curves = [];
 
-               // TRANSFORM POINT
+      for (var n = 0 ; n < P.length-1 ; n++) {
+         var X = M.transform(Hermite, [ P[n][0], P[n+1][0], R[n][0], R[n+1][0] ]);
+         var Y = M.transform(Hermite, [ P[n][1], P[n+1][1], R[n][1], R[n+1][1] ]);
+         var Z = M.transform(Hermite, [ P[n][2], P[n+1][2], R[n][2], R[n+1][2] ]);
 
-               p = M.transform(m, C[n][i]);
-
-               // RETRIEVE COORDINATES FROM TRANSFORMED POINT
-
-               x = p[0];
-               y = p[1];
-               z = p[2];
-
-               // DO PERSPECTIVE TRANSFORM
-
-               x *= fl / (fl - z);
-               y *= fl / (fl - z);
-
-               // DO VIEWPORT TRANSFORM
-
-               x =  w * x * .5 + .5 * w;
-               y = -w * y * .5 + .5 * h;
-               cv.push([x, y]);
-            }
-
-            // DRAW THE PROJECTED CURVE ONTO THE CANVAS.
-
-            g.beginPath();
-            g.moveTo(cv[0][0], cv[0][1]);
-            for (i = 1 ; i < cv.length ; i++)
-               g.lineTo(cv[i][0], cv[i][1]);
-            g.stroke();
-            //g.lineWidth(5);
-         }
+         var curve = [];
+         for (var t = 0 ; t < 1.0001 ; t += 1/20)
+            curve.push( [ cubic(X, t), cubic(Y, t), cubic(Z, t) ] );
+         curves.push(curve);
       }
 
-      g.lineCap = 'round';
-      g.lineJoin = 'round';
-      g.lineWidth = 1;
-
-      // OUTLINE THE CANVAS
-
-      g.beginPath();
-      g.moveTo(0,0);
-      g.lineTo(this.width,0);
-      g.lineTo(this.width,this.height);
-      g.lineTo(0,this.height);
-      g.lineTo(0,0);
-      g.stroke();
-
-      M.identity(m);
-      //console.log(m); works
-      M.scale(m, .5);  // Scale the scene down.
-      console.log(m);
-
-      // DRAW SHAPES.
-
-      M.save(m);
-      M.rotateY(m, time);
-      M.rotateX(m, time/2);
-
-      // DRAW AN OPEN PARAMETRIC-MESH TUBE.
-      M.scale(m,0.4)
-      M.rotateY(m, time/2);
-      M.rotateX(m, Math.PI/4);
-      drawCurves(m, S.parametricMesh(S.tube, 100, 10));
-
-      //drawCurves(m, S.parametricMesh(S.sphere, 50, 50));
+      this.drawCurves(m, curves );
+      M.translate(m, [0,.45,0]);
 
 
-      // DRAW OCTAHEDRON WITH THICK LINES
+      this.drawCurves(m, curves );
+      M.translate(m, [0,-0.9,0]);
 
-      g.lineWidth = 5;
-//      drawCurves(m, [
-//         [[-1,0,0],[0,-1,0],[0,0,-1],[-1,0,0]],
-//         [[ 1,0,0],[0,-1,0],[0,0,-1],[ 1,0,0]],
-//         [[-1,0,0],[0, 1,0],[0,0,-1],[-1,0,0]],
-//         [[ 1,0,0],[0, 1,0],[0,0,-1],[ 1,0,0]],
-//         [[-1,0,0],[0,-1,0],[0,0, 1],[-1,0,0]],
-//         [[ 1,0,0],[0,-1,0],[0,0, 1],[ 1,0,0]],
-//         [[-1,0,0],[0, 1,0],[0,0, 1],[-1,0,0]],
-//         [[ 1,0,0],[0, 1,0],[0,0, 1],[ 1,0,0]], ]);
+      this.drawCurves(m, curves );
+
+
       M.restore(m);
    }
 
-   drawCanvases([canvas1,canvas2,canvas3]);
+   drawCanvases([canvas1]);
 </script>
 
