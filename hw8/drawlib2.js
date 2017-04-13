@@ -27,7 +27,7 @@
       canvas.onmousemove = function(e) { this.setCursor(e.clientX, e.clientY   ); }
       canvas.onmouseup   = function(e) { this.setCursor(e.clientX, e.clientY, 0); }
 
-      canvas.drawCurves = function(m, C, isFill) {
+      canvas.drawCurves = function(m, C) {
          var i, n, p, pix, x, y, z, fl = 5,
 	     w = this.width; h = this.height, g = this.getContext('2d');
 
@@ -42,12 +42,7 @@
 
 	       // TRANSFORM POINT
 
-               x = C[n][i][0];
-               y = C[n][i][1];
-               z = C[n][i][2];
-	       if (z === undefined)
-	          z = 0;
-	       p = M.transform(m, [x, y, z]);
+	       p = M.transform(m, C[n][i]);
 
 	       // RETRIEVE COORDINATES FROM TRANSFORMED POINT
 
@@ -73,10 +68,7 @@
             g.moveTo(pix[0][0], pix[0][1]);
 	    for (i = 1 ; i < pix.length ; i++)
                g.lineTo(pix[i][0], pix[i][1]);
-            if (isFill)
-	       g.fill();
-            else
-	       g.stroke();
+	    g.stroke();
          }
       }
    }
