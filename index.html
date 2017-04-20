@@ -28,12 +28,51 @@
 </script>
 
 <script id='fs_script' type='x-shader/x-fragment'>
+
 varying vec3 vPos, vNor;
+
+
+
+
+
+vec3 phong1(vec3 N, vec3 E, vec3 A, vec3 D, vec4 S) {
+   vec3 c = A;                                // Ambient color
+   vec3 LDir = vPos;
+   float d = max(0., dot(N, LDir));           // Diffuse value
+   vec3 R = 2. * dot(N, LDir) * N - LDir;     // Reflection dir
+   float s = pow(max(0., dot(E, R)), S.a);    // Specular value
+   c += d * D + s * S.rgb * .1*S.a;
+   return c;
+}
+
+
+
+
 void main() {
    vec3 normal = normalize(vNor);
-   vec3 c = normal * .5 + .5;
+   vec3 c = vec3(.81,.1,.4);
+   vec3 E = vec3(0.3,0.3,1.);
+   vec3 LDir = vec3(0,0,1);
+
+float d = max(0., dot(normal, LDir));           // Diffuse value
+
+vec3 R = 2. * dot(normal, LDir) * normal - LDir;     // Reflection dir
+
+
+float s = pow(max(0., dot(E, R)), 10.);    // Specular value
+
+
+c += d * vec3(.5, .5, .05);               // Diffuse color
+c += s * vec3(.9,.9,.9);                   // Specular color
+
+
+
+
    gl_FragColor = vec4(sqrt(c), 1.);
 }
+
+
+
 </script>
    
 <script>
