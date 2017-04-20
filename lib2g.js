@@ -7,7 +7,7 @@ function SceneObject(vertices) {
    var bpe = Float32Array.BYTES_PER_ELEMENT;
 
    this.vertexSize = 6;
-   this.matrix = M.identityMatrix();
+   this.matrix = [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
 
    this.setMatrix = function(src) {
       M.copy(this.matrix, src);
@@ -111,7 +111,7 @@ function gl_start(canvas, vertexShader, fragmentShader, update) {           // S
 
             var matrixAddr = gl.getUniformLocation(gl.program, 'matrix');
 
-            var renderMatrix = M.identityMatrix();
+            var renderMatrix = [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1];
             M.matrixMultiply([1,0,0,0, 0,1,0,0, 0,0,1,.3, 0,0,0,1], obj.matrix, renderMatrix);
             gl.uniformMatrix4fv(matrixAddr, false, renderMatrix);
 
