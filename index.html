@@ -1,248 +1,135 @@
-
-<table>
-
-<tr>
-<td><canvas id=canvas1 width=1000 height=1000></td>
-<td width=50></td>
-<td valign=top>
-<big><b>
-Example of Bspline curve
-</b></big>
-<p>
-Some ways this could be extended:
-<ul>
-<li>Click midpoint between two key points to insert a new key point.
-<li>Click on a key point to delete it.
-<li>Toggle between open and closed curve.
-<li>Toggle curve appearance: stroke or fill or both in different colors.
-<li>Toggle key points between visible and invisible.
-<li>Support multiple curves.
-<li>Use multiple bsplines to create your own font.
-<li>Build a font designer.
-<li>Use multiple bsplines to make an animated face.
-</ul>
-</td>
-</tr>
-
-</table>
-
-<script src=drawlib2.js></script>
 <script src=M.js></script>
-<script src=S.js></script>
+<script src=lib2g.js></script>
+
+<body bgcolor=black text=white>
+<center>
+<canvas id='canvas1' width=600 height=600></canvas>
+</center>
+</body>
+
+<script id='vs_script' type='x-shader/x-vertex'>
+   attribute vec3 aPos, aNor;
+   varying   vec3 vPos, vNor;
+   uniform   mat4 matrix, invMatrix;
+   void main() {
+      vec4 pos = matrix * vec4(aPos, 1.);
+      vec4 nor = vec4(aNor, 0.) * invMatrix;
+
+// dot(nor, pos);
+// dot(nor * invMatrix, matrix * pos);
+// nor . invMatrix . matrix . pos
+// nor . (invMatrix . matrix) . pos
+// nor . pos
+
+      gl_Position = pos;
+      vPos = pos.xyz;
+      vNor = nor.xyz;
+   }
+</script>
+
+<script id='fs_script' type='x-shader/x-fragment'>
+varying vec3 vPos, vNor;
+void main() {
+   vec3 normal = normalize(vNor);
+   vec3 c = normal * .5 + .5;
+   gl_FragColor = vec4(sqrt(c), 1.);
+}
+</script>
+   
 <script>
-   var m = [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0];
 
-   // Matrix that transforms from [P0,P1,P2,P3] values to cubic coefficients [a,b,c,d].
+var m = M.identityMatrix();
 
-   var Bspline = [ -1/6,  3/6, -3/6,  1/6,  // a,b,c,d cubic coefficients from P0
-                    3/6, -6/6,    0,  4/6,  // a,b,c,d cubic coefficients from P1
-                   -3/6,  3/6,  3/6,  1/6,  // a,b,c,d cubic coefficients from P2
-                    1/6,    0,    0,    0   // a,b,c,d cubic coefficients from P3
-		 ];
+var vs = vs_script.innerHTML, fs = fs_script.innerHTML;
 
-   // Given cubic coefficients [a,b,c,d], evaluate cubic polynomial at t.
+addTextEditor(fs, function() { canvas1.setShaders(vs, this.value); });
 
-   function cubic(A, t) { return A[0] * t*t*t + A[1] * t*t + A[2] * t + A[3]; }
+var obj1, obj2;
 
-   // Initial values for the key points.  The user can change them interactively.
-
-   var P = [
-             [-.5, -.5,  0],
-             [ -.5,  .5,  0],
-             [  .5, .5,  0],
-             [  .5,  -.5,  0],
-           ];
-   function P_change(){
-       for(let i= 0;i<5;i++){
-           if(P[3][0]<0.49||P[2][0]<0.49||P[1][0]>-0.49||P[0][0]>-0.49) {
-               setTimeout(test(), 0.01)
-           }
-       }
-           //P[3] =[  .5,  -.5,  0];
-   }
-   function test(){
-       P[3][0]+=(0.5-P[3][0])*0.06;
-       P[3][1]-=(0.5+P[3][1])*0.06;
-       P[2][0]+=(0.5-P[2][0])*0.06;
-       P[2][1]+=(0.5-P[2][1])*0.06;
-       P[1][0]-=(0.5+P[1][0])*0.06;
-       P[1][1]+=(0.5-P[1][1])*0.06;
-       P[0][0]-=(0.5+P[0][0])*0.06;
-       P[0][1]-=(0.5+P[0][1])*0.06;
-   }
-
-   canvas1.update = function(g) {
-      g.lineCap = 'round';
-      g.lineJoin = 'round';
-      g.lineWidth = 1;
-
-      // OUTLINE THE CANVAS
-
-      g.strokeStyle = 'black';
-      g.beginPath();
-      g.moveTo(0,0);
-      g.lineTo(this.width,0);
-      g.lineTo(this.width,this.height);
-      g.lineTo(0,this.height);
-      g.lineTo(0,0);
-      g.stroke();
-
-      // DRAW THE SCENE
-
+gl_start(canvas1, vs, fs,
+   function(time) {
       M.identity(m);
+      M.rotateY(m, time);
+
       M.save(m);
-         var curves = [], curve, n, t;
+         obj1.setMatrix(m);
+      M.restore(m);
 
-	 // Compute the cursor.
-	 // Note: This will not yet work in the general case, because
-	 //       after converting from pixels, we need to undo perspective
-	 //       and then transform by the inverse of matrix m.
-
-         var cx = (this.cursor.x - this.width /2) /  (this.width/2);
-         var cy = (this.cursor.y - this.height/2) / -(this.width/2);
-
-	 // When mouse is button is down, select a key point if cursor gets near it.
-//      if (this.cursor.z) {
-       let new_pt = [-1 + (2 * this.cursor.x / this.width), 1 + (-2 * this.cursor.y / this.height), 0];
-      function draw(new_pt) {
-         console.log(new_pt, P[0][0], P[2][0], P[0][1]);
-         let x1 = Math.pow(new_pt[0] - P[0][0], 2) + Math.pow(new_pt[1] - P[0][1], 2), x2 = Math.pow(new_pt[0] - P[1][0], 2) + Math.pow(new_pt[1] - P[1][1], 2), x3 = Math.pow(new_pt[0] - P[2][0], 2) + Math.pow(new_pt[1] - P[2][1], 2), x4 = Math.pow(new_pt[0] - P[3][0], 2) + Math.pow(new_pt[1] - P[3][1], 2);
-         let ary = [x1, x2, x3, x4].sort();
-         console.log(ary)
-         if (new_pt[0] > P[0][0] && new_pt[0] < P[2][0] && new_pt[1] > P[0][1] && new_pt[1] < P[1][1]) {
-//             if(new_pt[0]<-0.25&&new_pt[1]<-0.25){
-//                 P[0]=new_pt}
-//             else if(new_pt[0]>0.25&&new_pt[1]<-0.25){
-//                 P[3]=new_pt}
-//             else if(new_pt[0]<-0.25&&new_pt[1]>0.25){
-//                 P[1]=new_pt}
-//             else if(new_pt[0]>0.25&&new_pt[1]>0.25){
-//                 P[2]=new_pt}
-//             else{
-//                 P_change();
-//             }
-             let swc = -1;
-             if(new_pt[0]<-0.25&&new_pt[1]<-0.25){
-                 swc = 0}//P[0]=new_pt}
-             else if(new_pt[0]>0.25&&new_pt[1]>0.25){
-                 swc = 2}//P[2]=new_pt}
-             else if(new_pt[0]>0.25&&new_pt[1]<-0.25){
-                 swc = 3}//P[3]=new_pt}
-             else if(new_pt[0]<-0.25&&new_pt[1]>0.25){
-                 swc = 1}//P[1]=new_pt}
-
-
-             switch (swc){
-                 case -1:
-                     P_change();
-                     break
-                 case 0:
-                     P[0]=new_pt;
-                     break
-                 case 1:
-                     P[1]=new_pt;
-                     break
-                 case 2:
-                     P[2]=new_pt;
-                     break
-                 case 3:
-                     P[3]=new_pt;
-                     break
-
-             }
-         }
-          else{
-             P_change();
-         }
-      }
-
-    setTimeout(draw(new_pt),0);
-//         function test(new_pt){
-//            while(new_pt[1]>-0/5){
-//               console.log("hi")
-//               P.pop();
-//               new_pt = new_pt+0.1*[0,-1];
-//               P.push(new_pt);
-//            }
-//         }
-
-
-
-
-         if (this.cursor.z) {
-
-            if (this.n === undefined)
-               for (n = 0 ; n < P.length ; n++) {
-                  let dx = P[n][0] - cx,
-                      dy = P[n][1] - cy;
-                  if (dx * dx + dy * dy < 0.05 * 0.05) {
-                     this.n = n;
-                     break;
-                  }
-               }
-         }
-
-	 // When mouse button is up, no key point is selected.
-
-         else
-            delete this.n;
-
-         // If a key point is selected, move it to the cursor location.
-
-         if (this.n !== undefined) {
-            P[this.n][0] = cx;
-            P[this.n][1] = cy;
-         }
-
-	 // Draw the set of bsplines as a single filled curve.
-
-         curve = [];
-         for (n = 0 ; n < P.length ; n++) {
-	    let nm = (n - 1 + P.length) % P.length,
-	        n1 = (n + 1           ) % P.length,
-	        n2 = (n + 2           ) % P.length,
-                X = M.transform(Bspline, [ P[nm][0], P[n][0], P[n1][0], P[n2][0] ]),
-                Y = M.transform(Bspline, [ P[nm][1], P[n][1], P[n1][1], P[n2][1] ]),
-                Z = M.transform(Bspline, [ P[nm][2], P[n][2], P[n1][2], P[n2][2] ]);
-
-            for (t = 0 ; t < 1.0001 ; t += 1/20)
-               curve.push( [ cubic(X, t), cubic(Y, t), cubic(Z, t) ] );
-         }
-         g.fillStyle = 'rgba(87,6,106,0.4)';
-         this.drawCurves(m, [ curve ], true); // Set isFill flag to true.
-
-	 // Draw the key points as small disks.
-
-         curves = [];
-         for (n = 0 ; n < P.length ; n++) {
-            curve = [];
-            for (t = 0 ; t < 2 * Math.PI ; t += 1/10)
-               curve.push([P[n][0] + .015 * Math.cos(t),
-                           P[n][1] + .015 * Math.sin(t), 0]);
-            curves.push(curve);
-         }
-         g.fillStyle = 'blue';
-         //this.drawCurves(m, curves, true);
-
-	 // Draw lines between successive key points.
-
-	 curves = [];
-         for (n = 0 ; n < P.length ; n++)
-	    curves.push([ P[n], P[(n+1) % P.length] ]);
-         g.strokeStyle = 'blue';
-         //this.drawCurves(m, curves );
-
-	 // Draw the cursor as red crosshairs.
-
-         curves = [];
-         curves.push([ [cx-.1, cy], [cx+.1, cy] ]);
-         curves.push([ [cx, cy-.1], [cx, cy+.1] ]);
-         g.strokeStyle = 'red';
-         //this.drawCurves(m, curves );
-
+      M.save(m);
+         M.rotateX(m, .5);
+         obj2.setMatrix(m);
       M.restore(m);
    }
+);
+   var scene = new Scene();
 
-   drawCanvases([canvas1]);
+   obj1 = new SceneObject();
+//   obj1.setVertices([
+//      -.3,-.3, 0,  0,0,1,
+//       .3,-.3, 0,  2,0,1,
+//       .3, .3, 0,  0,0,1,
+//
+//      .3, .3, 0,  0,0,1,
+//      -.3, .3, 0,  0,0,1,
+//      -.3,-.3, 0,  0,0,1,
+
+//      -.3, -.3, 0.2,  0,0,3,
+//      .3, .3, 0.0,  0,0,3,
+//      .3,.3, 0.5,  0,0,3,
+   //]);
+//scene.addObject(obj1);
+
+//
+let lst1 = [
+   -.3,-.3, 0,  0,0,1,
+   -0.2,-.3, 0,  2,0,1,
+   .3, .3, 0,  0,0,1,
+
+   -.2,-.3, 0,  0,0,1,
+   -.1,-.3, 0,  2,0,1,
+   .3, .3, 0,  0,0,1,
+//   .3, .3, 0,  0,0,1,
+//   -.3, .3, 0,  0,0,1,
+//   -.3,-.3, 0,  0,0,1,
+];
+let lst = [-.3,-.3, 0,  0,0,1];
+
+function get_lst(lst){
+   for(let i=0;i<1000;i++){
+      lst = lst.concat([
+         -.3+(i/1000)-0.01,-.3, i/1500,  0,0,1,
+         -.3+i/1000,-.3, i/1500,  2,0,1,
+         .3, .6, i/1500,  3,0,1]);
+   }
+   return lst
+}
+
+console.log(get_lst(lst));
+
+obj1.setVertices(get_lst(lst));
+scene.addObject(obj1);
+
+
+
+
+
+
+
+
+   obj2 = new SceneObject();
+   obj2.setVertices([
+      -.2,-.2,-.3,  -1.5,0,1,
+       .4,-.2, .3,  -0.5,0,1,
+       .4, .4, .3,  -0.5,0,1,
+
+       .4, .4, .3,  -0.5,0,1,
+      -.2, .4,-.3,  -1.5,0,1,
+      -.2,-.2,-.3,  -1.5,0,1,
+   ]);
+  // scene.addObject(obj2);
+
+   canvas1.scene = scene;
+
+
 </script>
 
